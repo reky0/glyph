@@ -88,16 +88,18 @@ print_banner() {
 }
 
 # ── interactive tool selection ─────────────────────────────────────────────────
+# All display output goes to stderr so the $() caller doesn't swallow it.
+# Only the final space-separated tool list is written to stdout.
 select_tools() {
-    printf "  ${BOLD}Available tools:${RESET}\n\n"
+    printf "  ${BOLD}Available tools:${RESET}\n\n" >&2
     for i in "${!TOOLS[@]}"; do
         local t="${TOOLS[$i]}"
         printf "    ${CYAN}%d${RESET}  %-7s  ${DIM}%s${RESET}\n" \
-            "$((i+1))" "$t" "${DESC[$t]}"
+            "$((i+1))" "$t" "${DESC[$t]}" >&2
     done
-    printf "\n"
-    printf "  Enter numbers to install (e.g. ${BOLD}1 3${RESET}), or ${BOLD}a${RESET} for all:\n"
-    printf "  > "
+    printf "\n" >&2
+    printf "  Enter numbers to install (e.g. ${BOLD}1 3${RESET}), or ${BOLD}a${RESET} for all:\n" >&2
+    printf "  > " >&2
 
     local input
     read -r input
@@ -110,7 +112,7 @@ select_tools() {
             if [[ "$token" =~ ^[1-4]$ ]]; then
                 selected+=("${TOOLS[$((token-1))]}")
             else
-                warn "Ignoring unknown selection: $token"
+                printf "  ${YELLOW}⚠${RESET}  Ignoring unknown selection: %s\n" "$token" >&2
             fi
         done
     fi
