@@ -39,9 +39,21 @@ func NewClientFromConfig(cfg core.Config) (Client, error) {
 			apiKey: cfg.APIKey,
 			model:  cfg.AIModel,
 		}, nil
+	case "claude":
+		if cfg.APIKey == "" {
+			return nil, &core.AppError{Msg: "api_key is required for claude provider"}
+		}
+		model := cfg.AIModel
+		if model == "" {
+			model = "claude-sonnet-4-6"
+		}
+		return &claudeClient{
+			apiKey: cfg.APIKey,
+			model:  model,
+		}, nil
 	default:
 		return nil, &core.AppError{
-			Msg: fmt.Sprintf("unknown ai_provider %q (valid: groq, ollama)", cfg.AIProvider),
+			Msg: fmt.Sprintf("unknown ai_provider %q (valid: groq, ollama, claude)", cfg.AIProvider),
 		}
 	}
 }

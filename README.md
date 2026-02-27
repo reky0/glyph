@@ -76,7 +76,7 @@ make build          # → dist/pin  dist/ask  dist/diff  dist/stand
 On first run, create `~/.config/glyph/config.toml`:
 
 ```toml
-ai_provider = "groq"                      # groq | ollama
+ai_provider = "groq"                      # groq | ollama | claude
 ai_model    = "llama-3.3-70b-versatile"
 api_key     = "YOUR_KEY_HERE"             # ignored when provider is ollama
 ollama_host = "http://localhost:11434"    # only used when provider is ollama
@@ -85,8 +85,18 @@ default_style = "rounded"
 
 ### Providers
 
-- **groq** — cloud inference via [Groq](https://console.groq.com). Requires `api_key`.
+- **groq** — cloud inference via [Groq](https://console.groq.com). Requires `api_key`. Default model: `llama-3.3-70b-versatile`.
 - **ollama** — local inference via [Ollama](https://ollama.ai). Set `ollama_host` and leave `api_key` empty.
+- **claude** — cloud inference via [Anthropic](https://console.anthropic.com). Requires `api_key`. Default model: `claude-sonnet-4-6`.
+
+#### Claude example
+
+```toml
+ai_provider = "claude"
+ai_model    = "claude-sonnet-4-6"   # or claude-opus-4-6, claude-haiku-4-5
+api_key     = "sk-ant-..."
+default_style = "rounded"
+```
 
 ---
 
