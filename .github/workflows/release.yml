@@ -90,6 +90,9 @@ jobs:
           path: artifacts/
           merge-multiple: true
 
+      - name: Add installer scripts
+        run: cp install.sh install.ps1 artifacts/
+
       - name: Generate checksums
         run: |
           cd artifacts
@@ -116,17 +119,22 @@ jobs:
 
             ### Installation
 
-            Download the archive for your platform, extract, and place the binary on your `$PATH`.
-
-            #### macOS / Linux
+            #### macOS / Linux — interactive installer
             ```sh
-            tar -xzf glyph-<tool>-<platform>.tar.gz
-            chmod +x <tool>
-            mv <tool> /usr/local/bin/
+            curl -fsSL https://github.com/reky0/glyph/releases/latest/download/install.sh | bash
+            ```
+            Or for a specific selection without prompting:
+            ```sh
+            curl -fsSL .../install.sh | bash -s -- pin ask
             ```
 
-            #### Windows
-            Extract the `.zip` and add the directory to your `PATH`.
+            #### Windows — interactive installer
+            ```powershell
+            irm https://github.com/reky0/glyph/releases/latest/download/install.ps1 | iex
+            ```
+
+            #### Manual
+            Download the archive for your platform from the assets below, extract, and place the binary on your `$PATH`.
 
             ### Configuration
 

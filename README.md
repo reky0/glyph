@@ -15,23 +15,58 @@
 
 ---
 
-## Installation (from source)
+## Installation
+
+### macOS / Linux
+
+```sh
+curl -fsSL https://github.com/reky0/glyph/releases/latest/download/install.sh | bash
+```
+
+The installer auto-detects your platform, presents a selection menu, downloads only what you choose, and offers to update your `$PATH`.
+
+Install specific tools non-interactively:
+
+```sh
+curl -fsSL https://github.com/reky0/glyph/releases/latest/download/install.sh | bash -s -- pin ask
+# or all at once:
+curl -fsSL https://github.com/reky0/glyph/releases/latest/download/install.sh | bash -s -- --all
+```
+
+Override the install directory (default: `~/.local/bin`):
+
+```sh
+GLYPH_INSTALL_DIR=/usr/local/bin curl -fsSL .../install.sh | bash -s -- --all
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://github.com/reky0/glyph/releases/latest/download/install.ps1 | iex
+```
+
+Install specific tools:
+
+```powershell
+.\install.ps1 -Tools pin,ask
+# or all at once:
+.\install.ps1 -All
+```
+
+Override the install directory (default: `%LOCALAPPDATA%\glyph\bin`):
+
+```powershell
+.\install.ps1 -All -InstallDir "C:\tools"
+```
+
+### From source
 
 Requires Go 1.24+.
 
 ```sh
-# Clone the repository
 git clone https://github.com/reky0/glyph.git
 cd glyph
-
-# Build all tools into dist/
-make build
-
-# Or install a single tool to $GOPATH/bin
-go install ./tools/pin/...
-go install ./tools/ask/...
-go install ./tools/diff/...
-go install ./tools/stand/...
+make build          # → dist/pin  dist/ask  dist/diff  dist/stand
 ```
 
 ---
