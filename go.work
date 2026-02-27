@@ -1,0 +1,12 @@
+go 1.24
+
+use (
+	./libs/glyph-core
+	./libs/glyph-ink
+	./libs/glyph-mind
+	./libs/glyph-store
+	./tools/ask
+	./tools/diff
+	./tools/pin
+	./tools/stand
+)
