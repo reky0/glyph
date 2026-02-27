@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build tools
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          VERSION="${{ github.ref_name }}"
+          SUFFIX=""
+          if [ "$GOOS" = "windows" ]; then SUFFIX=".exe"; fi
+
+          for tool in pin ask diff stand; do
+            go build \
+              -ldflags="-s -w -X github.com/reky0/glyph-${tool}/cmd.Version=${VERSION}" \
+              -o "dist/${tool}${SUFFIX}" \
+              "./tools/${tool}/cmd/${tool}"
+          done
+
+      - name: Package archives
+        run: |
+          PLATFORM="${{ matrix.goos }}-${{ matrix.goarch }}"
+          mkdir -p release
+
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            for tool in pin ask diff stand; do
+              zip "release/glyph-${tool}-${PLATFORM}.zip" "dist/${tool}.exe"
+            done
+          else
+            for tool in pin ask diff stand; do
+              tar -czf "release/glyph-${tool}-${PLATFORM}.tar.gz" -C dist "${tool}"
+            done
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: release/
+          retention-days: 1
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: |
+            ## glyph ${{ github.ref_name }}
+
+            Small CLI tools to capture, retrieve and understand what happens in your terminal.
+
+            ### Tools
+
+            | Binary | Description |
+            |--------|-------------|
+            | `pin`  | Clipboard for URLs, commands, paths and notes |
+            | `ask`  | Ask an AI with automatic directory context |
+            | `diff` | Explain a git diff in plain English |
+            | `stand`| Generate a standup from recent git commits |
+
+            ### Installation
+
+            Download the archive for your platform, extract, and place the binary on your `$PATH`.
+
+            #### macOS / Linux
+            ```sh
+            tar -xzf glyph-<tool>-<platform>.tar.gz
+            chmod +x <tool>
+            mv <tool> /usr/local/bin/
+            ```
+
+            #### Windows
+            Extract the `.zip` and add the directory to your `PATH`.
+
+            ### Configuration
+
+            Create `~/.config/glyph/config.toml`:
+            ```toml
+            ai_provider = "groq"                    # groq | ollama
+            ai_model    = "llama-3.3-70b-versatile"
+            api_key     = "YOUR_KEY_HERE"
+            default_style = "rounded"
+            ```
+
+            See the [README](https://github.com/reky0/glyph#readme) for full documentation.
+          files: |
+            artifacts/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
